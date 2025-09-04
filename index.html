@@ -1,23 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tabel Penghasilan Sawit</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f9;
-      padding: 20px;
+      padding: 15px;
+      margin: 0;
     }
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
       background: #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      min-width: 800px; /* agar kolom tetap proporsional */
     }
     th, td {
       border: 1px solid #ddd;
@@ -47,9 +52,12 @@
     .btn-container {
       text-align:center;
       margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
     }
     button, a.whatsapp-btn {
-      margin: 10px 5px;
       padding: 10px 15px;
       border: none;
       border-radius: 5px;
@@ -58,16 +66,57 @@
       font-weight: bold;
       cursor: pointer;
       text-decoration: none;
-      display: inline-block;
+      flex: 1 1 auto;
+      max-width: 220px;
+      text-align: center;
     }
     button:hover, a.whatsapp-btn:hover {
       background: #45a049;
+    }
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    /* ====== Mode untuk layar kecil (HP) ====== */
+    @media screen and (max-width: 768px) {
+      h2 {
+        font-size: 1rem;
+      }
+      table {
+        font-size: 11px;
+        min-width: 600px;
+      }
+      input {
+        width: 45px;
+        font-size: 11px;
+      }
+      button, a.whatsapp-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+    }
+
+    /* ====== Mode untuk layar besar (Desktop) ====== */
+    @media screen and (min-width: 1024px) {
+      h2 {
+        font-size: 1.5rem;
+      }
+      table {
+        font-size: 14px;
+      }
+      input {
+        width: 70px;
+      }
+      button, a.whatsapp-btn {
+        font-size: 14px;
+        padding: 12px 18px;
+      }
     }
   </style>
 </head>
 <body>
   <h2>Tabel Penghasilan Sawit (1 Bulan, 12 Orang)</h2>
-  <div style="overflow-x:auto;">
+  <div class="table-wrapper">
     <table id="sawitTable">
       <thead>
         <tr>
@@ -116,13 +165,12 @@
   </div>
 
   <script>
-    const ADMIN_CODE = "opunkGX"; // kode rahasia dari admin
+    const ADMIN_CODE = "opunkGX";
     const tableBody = document.getElementById("tableBody");
 
     // Buat 31 baris (tanggal)
     for (let i = 1; i <= 31; i++) {
       let row = document.createElement("tr");
-
       let tdTanggal = document.createElement("td");
       tdTanggal.textContent = i;
       row.appendChild(tdTanggal);
@@ -134,7 +182,11 @@
         input.min = 0;
         input.dataset.row = i;
         input.dataset.col = j;
-        input.oninput = () => hitungTotal();
+        input.oninput = () => {
+          if (input.value < 0) input.value = 0;
+          hitungTotal();
+          saveData(); // auto save tiap input
+        };
         td.appendChild(input);
         row.appendChild(td);
       }
@@ -147,7 +199,6 @@
       tableBody.appendChild(row);
     }
 
-    // Hitung total
     function hitungTotal() {
       let rows = tableBody.querySelectorAll("tr");
       let colTotals = Array(12).fill(0);
@@ -161,19 +212,18 @@
           rowTotal += val;
           colTotals[idx] += val;
         });
-        row.querySelector(".rowTotal").textContent = rowTotal.toLocaleString();
+        row.querySelector(".rowTotal").textContent = rowTotal.toLocaleString("id-ID");
         grandTotal += rowTotal;
       });
 
       let colTotalCells = document.querySelectorAll(".colTotal");
       colTotals.forEach((total, idx) => {
-        colTotalCells[idx].textContent = total.toLocaleString();
+        colTotalCells[idx].textContent = total.toLocaleString("id-ID");
       });
 
-      document.getElementById("grandTotal").textContent = grandTotal.toLocaleString();
+      document.getElementById("grandTotal").textContent = grandTotal.toLocaleString("id-ID");
     }
 
-    // Simpan data (dengan kode admin)
     function requestSave() {
       alert("⚠️ Untuk menyimpan data, silakan hubungi admin di WhatsApp: +60 11-4134 0245");
       let kode = prompt("Masukkan kode admin untuk simpan data:");
@@ -192,7 +242,6 @@
         data[key] = input.value;
       });
       localStorage.setItem("sawitData", JSON.stringify(data));
-      alert("✅ Data berhasil disimpan!");
     }
 
     function loadData() {
@@ -210,7 +259,6 @@
       }
     }
 
-    // Hapus data (dengan kode admin)
     function requestDelete() {
       alert("⚠️ Untuk menghapus data, silakan hubungi admin di WhatsApp: +60 11-4134 0245");
       let kode = prompt("Masukkan kode admin untuk hapus data:");
@@ -226,7 +274,6 @@
       }
     }
 
-    // Load data saat halaman dibuka
     window.onload = loadData;
   </script>
 </body>
